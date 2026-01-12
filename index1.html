@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Analytical Exposition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+
+body{
+  font-family:Calibri, sans-serif;
+  background:black;
+}
+
+.slide{
+  width:100%;
+  height:100vh;
+  padding:70px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  color:white;
+  background-size:cover;
+  background-position:center;
+  transition:opacity .8s ease, transform .8s ease;
+}
+
+.slide.hide{
+  opacity:0;
+  transform:scale(1.05);
+}
+
+h1{
+  font-family:'Georgia',serif;
+  font-size:56px;
+  margin-bottom:25px;
+  text-shadow:0 0 15px rgba(255,255,255,.3);
+  animation:titleCinematic 1.4s ease;
+}
+
+#content{
+  font-size:27px;
+  max-width:900px;
+  line-height:1.7;
+  min-height:160px;
+}
+
+p{margin:14px 0}
+.fade-in{animation:fadeUp .7s ease forwards}
+
+/* CONTROLS */
+.controls{
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:999;
+}
+
+button{
+  padding:12px 24px;
+  margin:0 6px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+}
+
+/* PROGRESS */
+.progress{
+  position:fixed;
+  top:0;
+  left:0;
+  height:6px;
+  background:linear-gradient(to right,#00c6ff,#0072ff);
+  width:0%;
+  transition:width .5s ease;
+  z-index:999;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes titleCinematic{
+  from{opacity:0;transform:scale(.85)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* =========================
+   RESPONSIVE KHUSUS HP
+   TIDAK MENGGANGGU LAPTOP
+========================= */
+@media (max-width:768px){
+
+  .slide{
+    padding:24px;
+  }
+
+  h1{
+    font-size:34px;
+    margin-bottom:18px;
+  }
+
+  #content{
+    font-size:18px;
+    max-width:100%;
+    line-height:1.6;
+    max-height:55vh;
+    overflow-y:auto;
+    padding-right:6px;
+  }
+
+  p{
+    margin:10px 0;
+  }
+
+  .controls{
+    bottom:12px;
+  }
+
+  button{
+    padding:10px 18px;
+    font-size:14px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div id="slide" class="slide">
+  <h1 id="title"></h1>
+  <div id="content"></div>
+</div>
+
+<div class="controls">
+  <button onclick="prev()">Prev</button>
+  <button onclick="goFullscreen()">Fullscreen</button>
+  <button onclick="next()">Next</button>
+</div>
+
+<script>
+const slides=[
+{title:"Analytical Exposition Text",sentences:["Unit 4 – English Advanced Grade 11"],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f')"},
+{title:"Definition",sentences:["Analytical Exposition Text explains the writer’s opinion about an issue.","The purpose is to persuade the reader."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1523240795612-9a054b0db644')"},
+{title:"Social Function",sentences:["To express opinion.","To persuade the reader.","To analyze issues logically."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1509062522246-3755977927d7')"},
+{title:"Generic Structure",sentences:["Thesis: introduction of topic and opinion.","Arguments: reasons and facts.","Reiteration: restating opinion."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b')"},
+{title:"Language Features",sentences:["Simple Present Tense.","Mental verbs.","Logical connectors.","Evaluative words."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3')"},
+{title:"Example Topic",sentences:["Social Media is Beneficial for Students.","It helps learning and communication."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1519389950473-47ba0277781c')"},
+{title:"Arguments",sentences:["Access learning materials easily.","Communicate with teachers and friends.","Improve digital skills."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d')"},
+{title:"Reiteration",sentences:["Social media gives many benefits.","If it is used wisely."],bg:"linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1')"},
+{title:"Conclusion",sentences:["Express opinions.","Think critically.","Persuade others logically."],bg:"linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.7)),url('https://images.unsplash.com/photo-1529070538774-1843cb3265df')"},
+{title:"Thank You",sentences:["Thank you for your attention 🙏"],bg:"linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.7)),url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b')"}
+];
+
+let slideIndex=0;
+let sentenceIndex=0;
+let locked=false;
+
+const slide=document.getElementById("slide");
+const title=document.getElementById("title");
+const content=document.getElementById("content");
+const progress=document.getElementById("progress");
+
+function loadSlide(){
+  locked=true;
+  slide.classList.add("hide");
+  setTimeout(()=>{
+    const s=slides[slideIndex];
+    title.innerText=s.title;
+    content.innerHTML="";
+    slide.style.background=s.bg;
+    sentenceIndex=0;
+    progress.style.width=((slideIndex+1)/slides.length*100)+"%";
+    slide.classList.remove("hide");
+    locked=false;
+  },600);
+}
+
+function next(){
+  if(locked) return;
+  const s=slides[slideIndex];
+  if(sentenceIndex<s.sentences.length){
+    const p=document.createElement("p");
+    p.innerText=s.sentences[sentenceIndex];
+    p.className="fade-in";
+    content.appendChild(p);
+    sentenceIndex++;
+  }else{
+    slideIndex=Math.min(slideIndex+1,slides.length-1);
+    loadSlide();
+  }
+}
+
+function prev(){
+  if(locked) return;
+  slideIndex=Math.max(slideIndex-1,0);
+  loadSlide();
+}
+
+function goFullscreen(){
+  document.documentElement.requestFullscreen();
+}
+
+/* KEYBOARD */
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="ArrowRight"||e.key===" "){next();}
+  if(e.key==="ArrowLeft"){prev();}
+});
+
+/* SWIPE */
+let startX=0;
+document.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+  const diff=startX-e.changedTouches[0].clientX;
+  if(diff>50) next();
+  if(diff<-50) prev();
+});
+
+loadSlide();
+</script>
+
+</body>
+</html>
